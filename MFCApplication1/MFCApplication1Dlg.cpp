@@ -13,25 +13,39 @@
 #include "MFCApplication1.h"
 #include "MFCApplication1Dlg.h"
 #include "afxdialogex.h"
-#include "USER_LINE_CHANGE_Dlg.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-/**************自定义的类调用**************/
+/*
+**********************************************************************
+*                              自定义头文件
+**********************************************************************
+*/
 
-#include  "USER_BAR_CLASS_DLG.h"
+#include "USER_BAR_CLASS_DLG.h"
 #include "USER_RGB_HSV_CLASS.h"
+#include "USER_LINE_CHANGE_Dlg.h"
+#include "USER_HIS_EQU.h" //直方图均衡化
 //#include "stdlib.h"
 
-/***************内部变量声明***************/
+/*
+**********************************************************************
+*                               内部变量（文件内全局）
+**********************************************************************
+*/
 
 bmpData bmpdata;
 CString BmpName;
 CString EntName;
 
-/***************内部函数声明***************/
+/*
+**********************************************************************
+*                               内部函数声明
+**********************************************************************
+*/
 void Cal_HSV_Scale(HSV_SLIDER_STRUCT hsv_slider_struct,float *hScale, float* sScale, float* vScale);  //调节滚动条实际上是在调节缩放系数
 
 
@@ -446,5 +460,27 @@ void CMFCApplication1Dlg::MEUN_LAB3_Button1_Up()
 void CMFCApplication1Dlg::HistogramEqualization_MenuButtonUp()
 {
 	// TODO: 在此添加命令处理程序代码
+	
+	//拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
 
+	//均衡化
+	USER_HIS_EQU user_his_equ(pixelArray, dataBytes);
+	user_his_equ.HistogramEqualization();
+
+	//显示图像2	
+	CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
+
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
 }

@@ -1,5 +1,53 @@
 #include "pch.h"
 #include "USER_HIS_EQU.h"
+
+/*
+********************************************************************************
+********************************************************************************
+*                               构造&析构函数
+********************************************************************************
+********************************************************************************
+*/
+
+/*
+******************************************************************************
+* 函数名称:	USER_HIS_EQU
+* 函数功能: 构造（初始化）函数
+* 输入参数:	vector ：bmp图像的RGB三通道数据, vectorsize ：array的长度
+* 输出参数:	none
+* 返 回 值:  void
+* 创建日期:  2021年-10月-19日
+* 注    意:
+*******************************************************************************
+*/
+ USER_HIS_EQU::USER_HIS_EQU(BYTE* ARRAY, int ARRAYSIZE)
+{
+	 array = ARRAY;
+	 ArraySize = ARRAYSIZE;
+	 
+	 R_array = (BYTE*)new char[ArraySize / 3 + 1];
+	 G_array = (BYTE*)new char[ArraySize / 3 + 1];
+	 B_array = (BYTE*)new char[ArraySize / 3 + 1];
+}
+ /*
+******************************************************************************
+* 函数名称:	~USER_HIS_EQU
+* 函数功能: 析构函数，将动态开辟的空间清除
+* 输入参数:	none
+* 输出参数:	none
+* 返 回 值:  void
+* 创建日期:  2021年-10月-19日
+* 注    意:
+*******************************************************************************
+*/
+ USER_HIS_EQU::~USER_HIS_EQU()
+{
+	 delete[] R_array;
+	 delete[] G_array;
+	 delete[] B_array;
+}
+
+
 /*
 ********************************************************************************
 ********************************************************************************
@@ -12,7 +60,7 @@
 ******************************************************************************
 * 函数名称:	HistogramEqualization
 * 函数功能: 直方图均衡化的接口函数
-* 输入参数:	array ：bmp图像的RGB三通道数据,  ArraySize ：array的长度
+* 输入参数:	void
 * 输出参数:	none
 * 返 回 值:  void
 * 创建日期:  2021年-10月-19日
@@ -20,7 +68,7 @@
 *******************************************************************************
 */
 
-void USER_HIS_EQU::HistogramEqualization(BYTE* array,int ArraySize)
+void USER_HIS_EQU::HistogramEqualization()
 {
 	//分离RGB
 	SeparateRGB(array, ArraySize);
@@ -82,7 +130,7 @@ void USER_HIS_EQU :: SeparateRGB(BYTE* array, int ArraySize)
 
 void USER_HIS_EQU::OneColorHistogramEqualization(BYTE* array, int ArraySize)
 {
-	float Grade[7] = {0}; //均衡化的分组计数数组
+	float Grade[8] = {0}; //均衡化的分组计数数组
 
 	//分级
 	for (int i = 0; i < ArraySize; i++)
@@ -109,7 +157,7 @@ void USER_HIS_EQU::OneColorHistogramEqualization(BYTE* array, int ArraySize)
 * 注    意:
 *******************************************************************************
 */
-int USER_HIS_EQU :: Classify(int OneColorVal, float* Grade)
+void USER_HIS_EQU :: Classify(int OneColorVal, float* Grade)
 {
 	for (int i = 0; i < 8; i++)
 	{
@@ -152,15 +200,22 @@ void USER_HIS_EQU :: Normalization(float* Grade,int ArraySize)
 */
 void USER_HIS_EQU::CreatNewGrade(float* Grade)
 {
+	float newGrade[8] = { 0 };
+	//均衡化
+	for (int i = 0; i < 8; i++)
+	{
+		newGrade[i] = Array_N_Sum(Grade,i) * 7;
+	}
+	//变换成灰度值
 	for (int i = 0; i < 8; i++)
 	{
 		for (int j = 0; j < 8; j++)
 		{
-			float tmp = Grade[i] * 7;
-			if ((tmp >= j) && (tmp < j + 1))
+			if (newGrade[i] >= j && newGrade[i] <= j + 1)
 			{
-				//Grade内容原来是百分比，现在改成了均衡化后的灰度值
-				Grade[i] = (int)((32 * round(tmp)) + (32 * round(tmp) + 32)) / 2;
+				int tmp = round(newGrade[i]);
+				Grade[i] = (32 * tmp + 32*(tmp + 1))/2;
+				break;
 			}
 		}
 
@@ -187,6 +242,7 @@ void USER_HIS_EQU::UpdateArray(BYTE* array, float* Grade, int ArraySize)
 			if ((array[i] >= 32 * j) && (array[i] < 32 * j + 32))
 			{
 				array[i] = (int)Grade[j];
+				break;
 			}
 		}
 
@@ -215,4 +271,24 @@ void USER_HIS_EQU ::UnionRGB(BYTE* array, int ArraySize)
 
 		j++;
 	}
+}
+/*
+******************************************************************************
+* 函数名称:	Array_N_Sum
+* 函数功能: 求数组前N项和
+* 输入参数: 数组 , N
+* 输出参数:	none
+* 返 回 值:  void
+* 创建日期:  2021年-10月-19日
+* 注    意:
+*******************************************************************************
+*/
+float USER_HIS_EQU::Array_N_Sum(float* array, int N)
+{
+	float res = 0;
+	for (int i = 0; i <= N; i++)
+	{
+		res += array[i];
+	}
+	return res;
 }
