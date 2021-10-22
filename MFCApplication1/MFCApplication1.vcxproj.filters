@@ -54,6 +54,9 @@
     <ClInclude Include="USER_FILTER.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="USER_ALG.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MFCApplication1.cpp">
@@ -77,10 +80,10 @@
     <ClCompile Include="USER_HIS_EQU.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="USER_FourierTrans.cpp">
+    <ClCompile Include="USER_FILTER.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="USER_FILTER.cpp">
+    <ClCompile Include="USER_ALG.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

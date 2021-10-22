@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "USER_FILTER.h"
 
+
 /*
 ********************************************************************************
 ********************************************************************************
@@ -25,7 +26,7 @@ USER_FILTER::USER_FILTER(BYTE* array, int  h, int  w)
 	pixelArray = array;
 	high = h;
 	width = w;
-	ArraySize = high * width;
+	ArraySize = high * width * 3;
 
 	R_array = (BYTE*)new char[ArraySize / 3 + 1];
 	G_array = (BYTE*)new char[ArraySize / 3 + 1];
@@ -71,8 +72,7 @@ USER_FILTER::~USER_FILTER()
 */
 void USER_FILTER::LowFilter()
 {
-	//分离RGB分别做滤波
-	SeparateRGB();
+	SeparateRGB();//分离RGB分别做滤波
 	Convolution(0);//0代表低通滤波卷积
 	UnionRGB();
 }
@@ -90,8 +90,7 @@ void USER_FILTER::LowFilter()
 */
 void USER_FILTER::HighFilter()
 {
-	//分离RGB分别做滤波
-	SeparateRGB();
+	SeparateRGB();//分离RGB分别做滤波
 	Convolution(1);//1代表低通滤波卷积
 	UnionRGB();
 }
@@ -109,7 +108,9 @@ void USER_FILTER::HighFilter()
 */
 void USER_FILTER::MidFilter()
 {
-
+	SeparateRGB();//分离RGB分别做滤波
+	Convolution(2);//1代表低通滤波卷积
+	UnionRGB();
 }
 
 /*
@@ -125,7 +126,9 @@ void USER_FILTER::MidFilter()
 */
 void USER_FILTER::MaxFilter()
 {
-
+	SeparateRGB();//分离RGB分别做滤波
+	Convolution(3);//1代表低通滤波卷积
+	UnionRGB();
 }
 
 /*
@@ -141,7 +144,9 @@ void USER_FILTER::MaxFilter()
 */
 void USER_FILTER::MinFilter()
 {
-
+	SeparateRGB();//分离RGB分别做滤波
+	Convolution(4);//1代表低通滤波卷积
+	UnionRGB();
 }
 
 
@@ -212,7 +217,9 @@ void USER_FILTER::UnionRGB()
 * 输出参数:	none
 * 返 回 值:  void
 * 创建日期:  2021年-10月-22日
-* 注    意:
+* 注    意:中值，max，min的本质在于排序算法
+		   尽管数据量不大，但是我认为排序算法的选取很重要，优秀的工程师拒绝冒泡 
+		   我新建了一个类叫算法类，里面有我大三时候写的快速排序的算法（现在具体实现忘记了hhh）
 *******************************************************************************
 */
 void USER_FILTER::Convolution(int flag)
@@ -244,7 +251,7 @@ void USER_FILTER::Convolution(int flag)
 		}
 	}
 
-	//模板卷积
+	//模板卷积 &MAX &MIN &MID滤波
 	switch (flag)
 	{
 		case 0 :
@@ -256,6 +263,21 @@ void USER_FILTER::Convolution(int flag)
 			DealHighConvolution(matrixR);
 			DealHighConvolution(matrixG);
 			DealHighConvolution(matrixB);
+			break;
+		case 2:
+			DealMidConvolution(matrixR); 
+			DealMidConvolution(matrixG);
+			DealMidConvolution(matrixB);
+			break;
+		case 3:
+			DealMaxConvolution(matrixR);
+			DealMaxConvolution(matrixG);
+			DealMaxConvolution(matrixB);
+			break;
+		case 4:
+			DealMinConvolution(matrixR);
+			DealMinConvolution(matrixG);
+			DealMinConvolution(matrixB);
 			break;
 		default:
 			break;
@@ -287,6 +309,7 @@ void USER_FILTER::Convolution(int flag)
 	delete[] matrixB;
 }
 
+
 /*
 ******************************************************************************
 * 函数名称:	DealLowConvolution
@@ -300,21 +323,52 @@ void USER_FILTER::Convolution(int flag)
 */
 void USER_FILTER :: DealLowConvolution(BYTE** matrix)
 {
+	//动态建立二维数组
+	BYTE** matrixNew;
+	matrixNew = new BYTE * [high];
+	for (int j = 0; j < high; j++)
+	{
+		matrixNew[j] = new BYTE[width];
+
+	}
+
+	//初始化
+	for (int i = 0; i < high; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			matrixNew[i][j] = matrix[i][j];
+
+		}
+	}
+
+	//卷积
 	for (int i = 1; i < high - 1 ; i++)
 	{
 		for (int j = 1; j < width - 1; j++)
 		{
-			matrix[i][j] =(BYTE) matrix[i - 1][j - 1] * lowFilterTemplate[0] +
-								 matrix[i - 1][j - 0] * lowFilterTemplate[1] +
-								 matrix[i - 1][j + 1] * lowFilterTemplate[2] +
-								 matrix[i - 0][j - 1] * lowFilterTemplate[3] +
-								 matrix[i - 0][j - 0] * lowFilterTemplate[4] +
-								 matrix[i - 0][j + 1] * lowFilterTemplate[5] +
-								 matrix[i + 1][j - 1] * lowFilterTemplate[6] +
-								 matrix[i + 1][j - 0] * lowFilterTemplate[7] +
-								 matrix[i + 1][j + 1] * lowFilterTemplate[8] ;
+			matrix[i][j] =  matrixNew[i - 1][j - 1] * lowFilterTemplate[0] +
+							matrixNew[i - 1][j - 0] * lowFilterTemplate[1] +
+							matrixNew[i - 1][j + 1] * lowFilterTemplate[2] +
+							matrixNew[i - 0][j - 1] * lowFilterTemplate[3] +
+							matrixNew[i - 0][j - 0] * lowFilterTemplate[4] +
+							matrixNew[i - 0][j + 1] * lowFilterTemplate[5] +
+							matrixNew[i + 1][j - 1] * lowFilterTemplate[6] +
+							matrixNew[i + 1][j - 0] * lowFilterTemplate[7] +
+							matrixNew[i + 1][j + 1] * lowFilterTemplate[8] ;
+			matrix[i][j] /= 9;
+			matrix[i][j] = matrix[i][j] < 0 ? 0 : matrix[i][j];
+			matrix[i][j] = matrix[i][j] > 255 ? 255 : matrix[i][j];
 		}
 	}
+
+	//释放
+	for (int j = 0; j < high; j++)
+	{
+		delete[] matrixNew[j];
+	}
+	delete[] matrixNew;
+
 }
 
 /*
@@ -330,19 +384,245 @@ void USER_FILTER :: DealLowConvolution(BYTE** matrix)
 */
 void USER_FILTER::DealHighConvolution(BYTE** matrix)
 {
+	//动态建立二维数组
+	BYTE** matrixNew;
+	matrixNew = new BYTE * [high];
+	for (int j = 0; j < high; j++)
+	{
+		matrixNew[j] = new BYTE[width];
+
+	}
+
+	//初始化
+	for (int i = 0; i < high; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			matrixNew[i][j] = matrix[i][j];
+
+		}
+	}
+
+	//卷积
 	for (int i = 1; i < high - 1; i++)
 	{
 		for (int j = 1; j < width - 1; j++)
 		{
-			matrix[i][j] = (BYTE)matrix[i - 1][j - 1] * HighFilterTemplate[0] +
-								 matrix[i - 1][j - 0] * HighFilterTemplate[1] +
-								 matrix[i - 1][j + 1] * HighFilterTemplate[2] +
-								 matrix[i - 0][j - 1] * HighFilterTemplate[3] +
-								 matrix[i - 0][j - 0] * HighFilterTemplate[4] +
-								 matrix[i - 0][j + 1] * HighFilterTemplate[5] +
-								 matrix[i + 1][j - 1] * HighFilterTemplate[6] +
-								 matrix[i + 1][j - 0] * HighFilterTemplate[7] +
-								 matrix[i + 1][j + 1] * HighFilterTemplate[8] ;
+			matrix[i][j] =  matrixNew[i - 1][j - 1] * HighFilterTemplate[0] +
+							matrixNew[i - 1][j - 0] * HighFilterTemplate[1] +
+							matrixNew[i - 1][j + 1] * HighFilterTemplate[2] +
+							matrixNew[i - 0][j - 1] * HighFilterTemplate[3] +
+							matrixNew[i - 0][j - 0] * HighFilterTemplate[4] +
+							matrixNew[i - 0][j + 1] * HighFilterTemplate[5] +
+							matrixNew[i + 1][j - 1] * HighFilterTemplate[6] +
+							matrixNew[i + 1][j - 0] * HighFilterTemplate[7] +
+							matrixNew[i + 1][j + 1] * HighFilterTemplate[8] ;
+
+			matrix[i][j] = matrix[i][j] < 0 ? 0 : matrix[i][j];
+			matrix[i][j] = matrix[i][j] > 255 ? 255 : matrix[i][j];
 		}
 	}
+
+	//释放
+	for (int j = 0; j < high; j++)
+	{
+		delete[] matrixNew[j];
+	}
+	delete[] matrixNew;
+}
+
+
+/*
+******************************************************************************
+* 函数名称:	DealMidConvolution
+* 函数功能: 处理中值滤波
+* 输入参数:  matrix：二维矩阵
+* 输出参数:	none
+* 返 回 值:  void
+* 创建日期:  2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+void USER_FILTER::DealMidConvolution(BYTE** matrix)
+{
+	//动态建立二维数组
+	BYTE** matrixNew;
+	matrixNew = new BYTE * [high];
+	for (int j = 0; j < high; j++)
+	{
+		matrixNew[j] = new BYTE[width];
+
+	}
+
+	//初始化
+	for (int i = 0; i < high; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			matrixNew[i][j] = matrix[i][j];
+
+		}
+	}
+
+	//卷积
+	for (int i = 1; i < high - 1; i++)
+	{
+		for (int j = 1; j < width - 1; j++)
+		{
+			int TmpArray[9] = {
+								matrixNew[i - 1][j - 1],
+								matrixNew[i - 1][j - 0],
+								matrixNew[i - 1][j + 1],
+								matrixNew[i - 0][j - 1],
+								matrixNew[i - 0][j - 0],
+								matrixNew[i - 0][j + 1],
+								matrixNew[i + 1][j - 1],
+								matrixNew[i + 1][j - 0],
+								matrixNew[i + 1][j + 1]
+			};
+			//排序
+			USER_ALG user_alg;
+			user_alg.QuickSort(TmpArray,9);
+			//中位数
+			matrix[i][j] = TmpArray[(int)9/2];
+
+		}
+	}
+
+	//释放
+	for (int j = 0; j < high; j++)
+	{
+		delete[] matrixNew[j];
+	}
+	delete[] matrixNew;
+}
+
+/*
+******************************************************************************
+* 函数名称:	DealMaxConvolution
+* 函数功能: 处理最大值滤波
+* 输入参数:  matrix：二维矩阵
+* 输出参数:	none
+* 返 回 值:  void
+* 创建日期:  2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+void USER_FILTER::DealMaxConvolution(BYTE** matrix)
+{
+	//动态建立二维数组
+	BYTE** matrixNew;
+	matrixNew = new BYTE * [high];
+	for (int j = 0; j < high; j++)
+	{
+		matrixNew[j] = new BYTE[width];
+
+	}
+
+	//初始化
+	for (int i = 0; i < high; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			matrixNew[i][j] = matrix[i][j];
+
+		}
+	}
+
+	//卷积
+	for (int i = 1; i < high - 1; i++)
+	{
+		for (int j = 1; j < width - 1; j++)
+		{
+			int TmpArray[9] = {
+								matrixNew[i - 1][j - 1],
+								matrixNew[i - 1][j - 0],
+								matrixNew[i - 1][j + 1],
+								matrixNew[i - 0][j - 1],
+								matrixNew[i - 0][j - 0],
+								matrixNew[i - 0][j + 1],
+								matrixNew[i + 1][j - 1],
+								matrixNew[i + 1][j - 0],
+								matrixNew[i + 1][j + 1]
+			};
+			//排序
+			USER_ALG user_alg;
+			user_alg.QuickSort(TmpArray, 9);
+			//最大值
+			matrix[i][j] = TmpArray[8];
+
+		}
+	}
+
+	//释放
+	for (int j = 0; j < high; j++)
+	{
+		delete[] matrixNew[j];
+	}
+	delete[] matrixNew;
+}
+
+/*
+******************************************************************************
+* 函数名称:	DealMinConvolution
+* 函数功能: 处理最小值滤波
+* 输入参数:  matrix：二维矩阵
+* 输出参数:	none
+* 返 回 值:  void
+* 创建日期:  2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+void USER_FILTER::DealMinConvolution(BYTE** matrix)
+{
+	//动态建立二维数组
+	BYTE** matrixNew;
+	matrixNew = new BYTE * [high];
+	for (int j = 0; j < high; j++)
+	{
+		matrixNew[j] = new BYTE[width];
+
+	}
+
+	//初始化
+	for (int i = 0; i < high; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			matrixNew[i][j] = matrix[i][j];
+
+		}
+	}
+
+	//卷积
+	for (int i = 1; i < high - 1; i++)
+	{
+		for (int j = 1; j < width - 1; j++)
+		{
+			int TmpArray[9] = {
+								matrixNew[i - 1][j - 1],
+								matrixNew[i - 1][j - 0],
+								matrixNew[i - 1][j + 1],
+								matrixNew[i - 0][j - 1],
+								matrixNew[i - 0][j - 0],
+								matrixNew[i - 0][j + 1],
+								matrixNew[i + 1][j - 1],
+								matrixNew[i + 1][j - 0],
+								matrixNew[i + 1][j + 1]
+			};
+			//排序
+			USER_ALG user_alg;
+			user_alg.QuickSort(TmpArray, 9);
+			//最小值
+			matrix[i][j] = TmpArray[0];
+
+		}
+	}
+
+	//释放
+	for (int j = 0; j < high; j++)
+	{
+		delete[] matrixNew[j];
+	}
+	delete[] matrixNew;
 }

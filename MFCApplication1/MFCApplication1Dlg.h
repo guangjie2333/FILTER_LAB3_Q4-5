@@ -42,4 +42,9 @@ public:
 	afx_msg void HistogramEqualization_MenuButtonUp();
 	afx_msg void LowFilterButtonUp();
 	afx_msg void LowFilter_MenuButtonUp();
+	afx_msg void HighFilter_MenuButtonUp();
+	afx_msg void MidFilter_MenuButtonUp();
+	afx_msg void MaxFilter_MenuButtonUp();
+	afx_msg void MinFilter_MenuButtonUp();
+	afx_msg void EnhanceColor();
 };

@@ -7,7 +7,7 @@
 * 作    者: guangjie2333
 * 完成日期: 2021-10-22
 * 内    容:
-* 注    意: none
+* 注    意: 整个模块基于RGB三通道bmp图
 *********************************************************************/
 
 /*
@@ -38,12 +38,12 @@ class USER_FILTER
 
 	private:
 		//低通滤波模板
-		float lowFilterTemplate[9] = {1 / 9,1 / 9, 1 / 9, 
-									  1 / 9, 1 / 9, 1 / 9, 
-			                          1 / 9, 1 / 9, 1 / 9 };
+		int lowFilterTemplate[9] = {1 ,1 , 1 , 
+									  1 , 1 , 1 , 
+			                          1 , 1 , 1 };
 		//高通滤波模板
-		float HighFilterTemplate[9] = { 0, -1, 0,
-									   -1,  5, 1,
+		int HighFilterTemplate[9] = { 0, -1, 0,
+									   -1,  5, -1,
 									    0, -1, 0 };
 
 
@@ -65,6 +65,8 @@ class USER_FILTER
 		void Convolution(int flag);//图像模板卷积
 		void DealLowConvolution(BYTE** matrix);
 		void DealHighConvolution(BYTE** matrix);
-
+		void DealMidConvolution(BYTE** matrix);
+		void DealMaxConvolution(BYTE** matrix);
+		void DealMinConvolution(BYTE** matrix);
 };
 

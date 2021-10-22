@@ -11,6 +11,9 @@
 #include <afx.h>
 using namespace std;
 
+/***********************引用头文件******************************/
+#include "USER_ALG.h"
+
 /*************************宏定义区*******************************/
 
 #define WM_GET_DIALOG_HSV_SLIDER_VAL		(WM_USER + 200)            //该变量用于两个窗口之间传递信息

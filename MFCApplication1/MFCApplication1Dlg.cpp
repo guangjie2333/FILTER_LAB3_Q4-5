@@ -110,6 +110,11 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_COMMAND(ID_32774, &CMFCApplication1Dlg::MEUN_LAB3_Button1_Up)
 	ON_COMMAND(ID_32777, &CMFCApplication1Dlg::HistogramEqualization_MenuButtonUp)
 	ON_COMMAND(ID_32778, &CMFCApplication1Dlg::LowFilter_MenuButtonUp)
+	ON_COMMAND(ID_32779, &CMFCApplication1Dlg::HighFilter_MenuButtonUp)
+	ON_COMMAND(ID_32780, &CMFCApplication1Dlg::MidFilter_MenuButtonUp)
+	ON_COMMAND(ID_32781, &CMFCApplication1Dlg::MaxFilter_MenuButtonUp)
+	ON_COMMAND(ID_32782, &CMFCApplication1Dlg::MinFilter_MenuButtonUp)
+	ON_COMMAND(ID_32783, &CMFCApplication1Dlg::EnhanceColor)
 END_MESSAGE_MAP()
 
 
@@ -245,6 +250,8 @@ void CMFCApplication1Dlg::OnBnClickedButtonOpenbmp()
 			bmpdata.bmpFile.Read(bmpdata.pBmpData, dataBytes);  //存储图像数据(以文件指针为起点开始读dataBytes个数据)
 			bmpdata.bmpFile.Close();
 
+
+
 			//显示图像1	
 			CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE); //获得pictrue控件窗口的句柄			
 			CRect rect;
@@ -253,10 +260,11 @@ void CMFCApplication1Dlg::OnBnClickedButtonOpenbmp()
 			pDC->SetStretchBltMode(COLORONCOLOR);
 			StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, bmpdata.pBmpData, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
 			
-			////显示图像2	
+			
+			//显示图像2	
 			pWnd = GetDlgItem(IDC_STATIC_PICTURE2); //获得pictrue控件窗口的句柄			
 			pWnd->GetClientRect(&rect); //获得pictrue控件所在的矩形区域			
-			pDC = pWnd->GetDC(); //获得pictrue控件的DC			
+			pDC = pWnd->GetDC(); //获得pictrue控件的DC		
 			pDC->SetStretchBltMode(COLORONCOLOR);
 			StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, bmpdata.pBmpData, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
 			
@@ -267,7 +275,6 @@ void CMFCApplication1Dlg::OnBnClickedButtonOpenbmp()
 		}
 	}
 }
-
 
 //鼠标在屏幕中移动的事件响应函数
 void CMFCApplication1Dlg::OnMouseMove(UINT nFlags, CPoint point)
@@ -543,4 +550,214 @@ void CMFCApplication1Dlg::LowFilter_MenuButtonUp()
 	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
 
 	delete[]pixelArray;
+}
+
+/*
+******************************************************************************
+* 函数名称:	HighFilter_MenuButtonUp
+* 函数功能: 菜单栏，实验三，高通滤波
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+void CMFCApplication1Dlg::HighFilter_MenuButtonUp()
+{
+	// TODO: 在此添加命令处理程序代码
+	//拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
+
+	//高通滤波
+	USER_FILTER userfilter(pixelArray, bmpdata.bmpInfo.biHeight, bmpdata.bmpInfo.biWidth);
+	userfilter.HighFilter();
+
+	// 显示图像2
+	CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
+}
+
+/*
+******************************************************************************
+* 函数名称:	MidFilter_MenuButtonUp
+* 函数功能: 菜单栏，实验三，中值滤波
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+void CMFCApplication1Dlg::MidFilter_MenuButtonUp()
+{
+	// TODO: 在此添加命令处理程序代码
+	//拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
+
+	//中值滤波
+	USER_FILTER userfilter(pixelArray, bmpdata.bmpInfo.biHeight, bmpdata.bmpInfo.biWidth);
+	userfilter.MidFilter();
+
+	// 显示图像2
+	CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
+}
+
+/*
+******************************************************************************
+* 函数名称:	MaxFilter_MenuButtonUp
+* 函数功能: 菜单栏，实验三，最大值滤波
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+void CMFCApplication1Dlg::MaxFilter_MenuButtonUp()
+{
+	// TODO: 在此添加命令处理程序代码
+	//拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
+
+	//最大值滤波
+	USER_FILTER userfilter(pixelArray, bmpdata.bmpInfo.biHeight, bmpdata.bmpInfo.biWidth);
+	userfilter.MaxFilter();
+
+	// 显示图像2
+	CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
+}
+/*
+******************************************************************************
+* 函数名称:	MinFilter_MenuButtonUp
+* 函数功能: 菜单栏，实验三，最小值滤波
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+
+void CMFCApplication1Dlg::MinFilter_MenuButtonUp()
+{
+	// TODO: 在此添加命令处理程序代码
+	//拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
+
+	//最小值滤波
+	USER_FILTER userfilter(pixelArray, bmpdata.bmpInfo.biHeight, bmpdata.bmpInfo.biWidth);
+	userfilter.MinFilter();
+
+	// 显示图像2
+	CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
+}
+
+/*
+******************************************************************************
+* 函数名称:	MinFilter_MenuButtonUp
+* 函数功能: 菜单栏，实验三，伪彩色增强
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意: 我的都是基于RGB的，这个任务要读256的图，现在不想弄了，暂时搁置吧。
+*******************************************************************************
+*/
+void CMFCApplication1Dlg::EnhanceColor()
+{
+	// TODO: 在此添加命令处理程序代码
+	//拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
+	BYTE* newPixelArray = (BYTE*)new char[dataBytes * 3];;
+	for (int i = 0; i < dataBytes ; i++)
+	{
+		//不好意思，用了这么恶心的else if
+		if ((pixelArray[i] >= 0) && (pixelArray[i] < 63))
+		{
+			newPixelArray[i * 3 + 0] = 255;//B
+			newPixelArray[i * 3 + 1] = 254 - 4 * pixelArray[i];//G
+			newPixelArray[i * 3 + 2] = 0;//R
+
+		}
+		else if ((pixelArray[i] >= 64) && (pixelArray[i] < 127))
+		{
+			newPixelArray[i * 3 + 0] = 510 - 4 * pixelArray[i];//B
+			newPixelArray[i * 3 + 1] = 4 * pixelArray[i] - 254;//G
+			newPixelArray[i * 3 + 2] = 0;//R
+		}
+		else if ((pixelArray[i] >= 128) && (pixelArray[i] < 191))
+		{
+			newPixelArray[i * 3 + 0] = 0;//B
+			newPixelArray[i * 3 + 1] = 255 ;//G
+			newPixelArray[i * 3 + 2] = 4 * pixelArray[i] - 510;//R
+		}
+		else if ((pixelArray[i] >= 192) && (pixelArray[i] < 255))
+		{
+			newPixelArray[i * 3 + 0] = 0;//B
+			newPixelArray[i * 3 + 1] = 1022 - 4 * pixelArray[i];//G
+			newPixelArray[i * 3 + 2] = 255;//R
+		}
+		
+	}
+
+
+	// 显示图像2
+	CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, newPixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
+	delete[]newPixelArray;
 }

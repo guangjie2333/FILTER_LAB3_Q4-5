@@ -189,6 +189,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="USER_ALG.h" />
     <ClInclude Include="USER_BAR_CLASS_DLG.h" />
     <ClInclude Include="USER_DEFINE.h" />
     <ClInclude Include="USER_FILTER.h" />
@@ -206,9 +207,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="USER_ALG.cpp" />
     <ClCompile Include="USER_BAR_CLASS_DLG.cpp" />
     <ClCompile Include="USER_FILTER.cpp" />
-    <ClCompile Include="USER_FourierTrans.cpp" />
     <ClCompile Include="USER_HIS_EQU.cpp" />
     <ClCompile Include="USER_LINE_CHANGE_Dlg.cpp" />
     <ClCompile Include="USER_RGB_HSV_CLASS.cpp" />
