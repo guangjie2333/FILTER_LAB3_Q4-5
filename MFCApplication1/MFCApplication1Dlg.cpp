@@ -15,6 +15,7 @@
 #include "afxdialogex.h"
 
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -25,10 +26,11 @@
 **********************************************************************
 */
 
-#include "USER_BAR_CLASS_DLG.h"
-#include "USER_RGB_HSV_CLASS.h"
-#include "USER_LINE_CHANGE_Dlg.h"
-#include "USER_HIS_EQU.h" //直方图均衡化
+#include "USER_BAR_CLASS_DLG.h"		//滚动条（UI）
+#include "USER_RGB_HSV_CLASS.h"		//HSV-RGB
+#include "USER_LINE_CHANGE_Dlg.h"	//线性变换(UI)
+#include "USER_HIS_EQU.h"			//直方图均衡化
+#include "USER_FILTER.h"			//滤波
 //#include "stdlib.h"
 
 /*
@@ -107,6 +109,7 @@ BEGIN_MESSAGE_MAP(CMFCApplication1Dlg, CDialogEx)
 	ON_MESSAGE(WM_GET_DIALOG_HSV_SLIDER_VAL, UserMessageHandler) //用户自定义的消息标识和函数的绑定
 	ON_COMMAND(ID_32774, &CMFCApplication1Dlg::MEUN_LAB3_Button1_Up)
 	ON_COMMAND(ID_32777, &CMFCApplication1Dlg::HistogramEqualization_MenuButtonUp)
+	ON_COMMAND(ID_32778, &CMFCApplication1Dlg::LowFilter_MenuButtonUp)
 END_MESSAGE_MAP()
 
 
@@ -448,6 +451,17 @@ void Cal_HSV_Scale(HSV_SLIDER_STRUCT hsv_slider_struct, float* hScale, float* sS
 
 
 //LAB3
+/*
+******************************************************************************
+* 函数名称:	MEUN_LAB3_Button1_Up
+* 函数功能: 菜单栏，实验三，线性变换
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
 void CMFCApplication1Dlg::MEUN_LAB3_Button1_Up()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -456,7 +470,17 @@ void CMFCApplication1Dlg::MEUN_LAB3_Button1_Up()
 	dlg.DoModal();
 }
 
-
+/*
+******************************************************************************
+* 函数名称:	HistogramEqualization_MenuButtonUp
+* 函数功能: 菜单栏，实验三，直方图均衡
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
 void CMFCApplication1Dlg::HistogramEqualization_MenuButtonUp()
 {
 	// TODO: 在此添加命令处理程序代码
@@ -478,6 +502,42 @@ void CMFCApplication1Dlg::HistogramEqualization_MenuButtonUp()
 	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
 	pDC->SetStretchBltMode(COLORONCOLOR);
 
+	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
+	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	delete[]pixelArray;
+}
+
+/*
+******************************************************************************
+* 函数名称:	LowFilter_MenuButtonUp
+* 函数功能: 菜单栏，实验三，低通滤波
+* 输入参数: none
+* 输出参数:	none
+* 返 回 值: void
+* 创建日期: 2021年-10月-22日
+* 注    意:
+*******************************************************************************
+*/
+
+void CMFCApplication1Dlg::LowFilter_MenuButtonUp()
+{
+   //拷贝原数据
+	DWORD dataBytes = bmpdata.bmpHeader.bfSize - bmpdata.bmpHeader.bfOffBits;//图像数据大小，单位为字节
+	BYTE* pixelArray = (BYTE*)new char[dataBytes];
+	memcpy(pixelArray, bmpdata.pBmpData, dataBytes);
+
+	//低通滤波
+	USER_FILTER userfilter(pixelArray, bmpdata.bmpInfo.biHeight, bmpdata.bmpInfo.biWidth);
+	userfilter.LowFilter();
+
+	// 显示图像2
+	CWnd * pWnd = GetDlgItem(IDC_STATIC_PICTURE2);					//获得pictrue控件窗口的句柄	
+	CRect rect;
+	pWnd->GetClientRect(&rect);										//获得pictrue控件所在的矩形区域			
+	CDC* pDC = pWnd->GetDC();										//获得pictrue控件的DC			
+	pDC->SetStretchBltMode(COLORONCOLOR);
 	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
 	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
 	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);

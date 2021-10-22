@@ -36,16 +36,19 @@ class USER_HIS_EQU
 	public:
 		USER_HIS_EQU(BYTE* ARRAY, int ARRAYSIZE);
 		~USER_HIS_EQU();
-	public:
 		void HistogramEqualization();//直方图均衡化的接口函数
-	private:
+
+	protected:
 		void SeparateRGB(BYTE* array, int ArraySize);
+		void UnionRGB(BYTE* array, int ArraySize);
+		float Array_N_Sum(float* array, int N);//求数组前N项和
+
+	private:
 		void OneColorHistogramEqualization(BYTE* array, int ArraySize);
 		void Classify(int OneColorVal, float* Grade); //输入一个0-255值，以32长度为一组，输出组数
 		void Normalization(float* Grade, int ArraySize); //输入均衡化的分组数组，每个元素除以单通道颜色总数
 		void CreatNewGrade(float* Grade);
-		void UpdateArray(BYTE* array,float* Grade, int ArraySize);
-		void UnionRGB(BYTE* array, int ArraySize);
-		float Array_N_Sum(float* array, int N);//求数组前N项和
+		void UpdateArray(BYTE* array, float* Grade, int ArraySize);//将图像数据根据均衡化的结果做更新
+		
 };
 
