@@ -223,10 +223,11 @@ void CMFCApplication1Dlg::OnBnClickedButtonOpenbmp()
 //按下确定按钮 dlg.DoModal() 函数显示对话框
 	if (dlg.DoModal() == IDOK)
 	{
+		//way 1
 		//打开对话框获取图像信息
 		BmpName = dlg.GetPathName();     //获取文件路径名   
 	    EntName = dlg.GetFileExt();      //获取文件扩展名
-		EntName.MakeLower();                     //将文件扩展名转换为一个小写字符
+		EntName.MakeLower();             //将文件扩展名转换为一个小写字符
 
 		if (EntName.Compare(_T("bmp")) == 0)  //如果是bmp图片则打开显示
 		{
@@ -250,7 +251,7 @@ void CMFCApplication1Dlg::OnBnClickedButtonOpenbmp()
 			bmpdata.bmpFile.Read(bmpdata.pBmpData, dataBytes);  //存储图像数据(以文件指针为起点开始读dataBytes个数据)
 			bmpdata.bmpFile.Close();
 
-
+/*
 
 			//显示图像1	
 			CWnd* pWnd = GetDlgItem(IDC_STATIC_PICTURE); //获得pictrue控件窗口的句柄			
@@ -270,9 +271,43 @@ void CMFCApplication1Dlg::OnBnClickedButtonOpenbmp()
 			
 			//打印信息
 			TRACE(" rect.Width() = %d , rect.Height() = %d, bmpInfo.biWidth = %d ,  bmpInfo.biHeight = %d \n\n",rect.Width(), rect.Height(), bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight);
-			
+*/			
 
 		}
+
+
+		//way 2 
+		CWnd* m_pWnd;
+
+		m_pWnd = this->GetDlgItem(IDC_STATIC_PICTURE);  //  IDC_PICTURE此为Picture控件ID 
+
+		  //********* 加载图像 ********************
+
+		try {
+			// 此类方法即便实现体在OnPaint()外，Picture也可以显示图像，已经过验证
+			CRect   rect;
+			CImage  image;
+			image.Load(dlg.GetPathName().GetBuffer());
+			m_pWnd->GetWindowRect(&rect);  //将客户区选中到控件表示的矩形区域内  
+			CWnd* pWnd = NULL;
+			pWnd = m_pWnd;//获取控件句柄  
+			pWnd->GetClientRect(&rect);//获取句柄指向控件区域的大小  
+			CDC* pDc = NULL;
+			pDc = pWnd->GetDC();//获取picture的DC  
+			pDc->SetStretchBltMode(STRETCH_HALFTONE);
+			image.Draw(pDc->m_hDC, rect);
+			ReleaseDC(pDc);
+
+		}
+		catch (CException* e)
+		{
+			 TCHAR   szError[1024];
+
+			 e->GetErrorMessage(szError,1024);   //  e.GetErrorMessage(szError,1024); 
+			 ::AfxMessageBox(szError);
+		}
+
+
 	}
 }
 
@@ -755,8 +790,8 @@ void CMFCApplication1Dlg::EnhanceColor()
 	pDC->SetStretchBltMode(COLORONCOLOR);
 	BITMAPINFO* pBmpInfo = (BITMAPINFO*)new char[sizeof(BITMAPINFOHEADER)];
 	memcpy(pBmpInfo, &bmpdata.bmpInfo, sizeof(BITMAPINFOHEADER));
-	
-	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, newPixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
+
+	StretchDIBits(pDC->GetSafeHdc(), 0, 0, rect.Width(), rect.Height(), 0, 0, bmpdata.bmpInfo.biWidth, bmpdata.bmpInfo.biHeight, pixelArray, pBmpInfo, DIB_RGB_COLORS, SRCCOPY);
 
 	delete[]pixelArray;
 	delete[]newPixelArray;
